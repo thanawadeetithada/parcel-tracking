@@ -1,29 +1,32 @@
 <?php
-session_start();   //เรียก session
-require_once 'db.php'; //ต่อ database
+session_start();
+require_once 'db.php';
 
-if (!isset($_SESSION['user_id'])) {  //login
+if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
-$sql = "SELECT userrole FROM users WHERE id = ?";
-$stmt = $conn->prepare($sql);
+$userrole = $_SESSION['user_role'];
+
+if ($userrole == 'admin' || $userrole == 'superadmin') {
+    $sql = "SELECT * FROM users";
+    $result = $conn->query($sql);
+} else {
+    header("Location: index.php");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+
+$stmt = $conn->prepare("SELECT userrole FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $stmt->bind_result($userrole);
 $stmt->fetch();
 $stmt->close();
 
-if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role admin
-    $sql = "SELECT * FROM users";  //admin/superadmin เรียกทุกข้อมูล
-    $result = $conn->query($sql);
-} else {
-    echo "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้";   //ถ้าไม่ใช่ admin หรือ superadmin ไปหน้า login
-    header("Location: index.php"); 
-    exit();
-}
 ?>
 
 <!DOCTYPE html>
@@ -40,10 +43,8 @@ if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role ad
 
     <style>
     body {
-        background-color: #f9fafc;
-        font-family: 'Arial', sans-serif;
-        height: 100vh;
-        margin: 0;
+        background-color: #d6d6d6;
+        font-family: 'Prompt', sans-serif;
     }
 
     .card {
@@ -56,22 +57,6 @@ if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role ad
         background-color: #ffffff;
     }
 
-    .table th,
-    .table td {
-        text-align: center;
-        font-size: 14px;
-
-    }
-
-    .table {
-        background: #f8f9fa;
-        border-radius: 10px;
-    }
-
-    .table th {
-        background-color: #f9fafc;
-        color: black;
-    }
 
     .modal-dialog {
         display: flex;
@@ -89,7 +74,7 @@ if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role ad
 
     .header-card {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
     }
 
     .form-control modal-text {
@@ -113,46 +98,63 @@ if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role ad
         width: 100%;
     }
 
-    .search-name {
-        width: 50%;
-        margin-bottom: 10px;
-    }
-
-    .btn-header {
-        margin-bottom: 10px;
-    }
-
     .modal-header {
         font-weight: bold;
         padding: 25px;
     }
 
-    .nav-item a {
-        color: white;
-        margin-right: 1rem;
-    }
-
-    .navbar {
-        padding: 20px;
-    }
-
-    .nav-link:hover {
-        color: white;
-    }
-
     .modal-body {
         padding: 10px 40px;
+    }
+
+    .table-rounded {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+
+    tbody td:first-child,
+    th:first-child {
+        padding-left: 15px;
     }
     </style>
 </head>
 
 <body>
-    <div class="navbar navbar-dark bg-dark justify-content-end">
-        <div class="nav-item d-flex">
-            <a class="nav-link mr-3" href="dashboard.php"></i>&nbsp;&nbsp;รายการเอกสาร</a>
-            <a class="nav-link" href="logout.php"><i class="fa-solid fa-user"></i>&nbsp;&nbsp;Logout</a>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #004085; padding-left: 2rem;">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.php">จัดการผู้ใช้งาน</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.php">ระบบจัดการพัสดุในหน่วยงาน</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="searchreport_student.php">ค้นหาข้อมูลนักเรียน</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="record_score.php">บันทึกคะแนน</a>
+                    </li>
+                    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="user_management.php">จัดการผู้ใช้งาน</a>
+                    </li>
+                    <?php endif; ?>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" href="logout.php">
+                            <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
+    </nav>
+
     <div class="card">
         <?php if (isset($result) && $result->num_rows > 0): ?>
         <div class="header-card">
@@ -161,15 +163,16 @@ if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role ad
         <?php endif; ?>
         <br>
         <?php if (isset($result) && $result->num_rows > 0): ?>
-        <div class="table-responsive">
-            <!-- ตาราง -->
-            <table class="table table-bordered">
-                <thead>
+        <div class="table-responsive table-rounded shadow-sm">
+            <table class="table table-bordered table-hover data-table mb-0">
+                <thead class="table-dark">
                     <tr>
                         <th>ชื่อ-สกุล</th>
                         <th>อีเมล</th>
                         <th>สถานะ</th>
-                        <th>จัดการ</th>
+                        <?php if ($userrole === 'superadmin'): ?>
+                        <th class="text-center">จัดการ</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
@@ -178,18 +181,28 @@ if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role ad
                         <td><?php echo htmlspecialchars($row['prefix']); ?>
                             <?php echo htmlspecialchars($row['fullname']); ?></td>
                         <td><?php echo htmlspecialchars($row['email']); ?></td>
-                        <td><?php echo htmlspecialchars($row['userrole']); ?></td>
+                        <td>
+                            <?php
+                switch ($row['userrole']) {
+                    case 'superadmin': echo 'ผู้ดูแลระบบ'; break;
+                    case 'admin': echo 'เจ้าหน้าที่พัสดุ'; break;
+                    case 'user': echo 'ผู้ใช้งาน'; break;
+                    default: echo htmlspecialchars($row['userrole']);
+                }
+            ?>
+                        </td>
+
+                        <?php if ($userrole === 'superadmin'): ?>
                         <td class="btn-action">
-                            <a href="#" class="btn btn-warning btn-sm edit-btn" data-id="<?php echo $row['id']; ?>"
-                                <?php if ($userrole == 'admin' && $row['userrole'] == 'superadmin') echo 'style="visibility:hidden;"'; ?>>
+                            <a href="#" class="btn btn-warning btn-sm edit-btn" data-id="<?php echo $row['id']; ?>">
                                 <i class="fa-solid fa-pencil"></i>
                             </a>
                             &nbsp;&nbsp;
-                            <a href="#" class="btn btn-danger btn-sm delete-btn" data-id="<?php echo $row['id']; ?>"
-                                <?php if ($userrole == 'admin' && $row['userrole'] == 'superadmin') echo 'style="visibility:hidden;"'; ?>>
+                            <a href="#" class="btn btn-danger btn-sm delete-btn" data-id="<?php echo $row['id']; ?>">
                                 <i class="fa-regular fa-trash-can"></i>
                             </a>
                         </td>
+                        <?php endif; ?>
                     </tr>
                     <?php endwhile; ?>
                 </tbody>
@@ -238,8 +251,6 @@ if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role ad
                                 <option value="นาย">นาย</option>
                                 <option value="นาง">นาง</option>
                                 <option value="นางสาว">นางสาว</option>
-                                <option value="สิบเอก">สิบเอก</option>
-                                <option value="ผู้ช่วยศาสตราจารย์">ผู้ช่วยศาสตราจารย์</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -253,9 +264,9 @@ if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role ad
                         <div class="mb-3">
                             <label for="edit_userRole" class="col-form-label">สถานะ</label>
                             <select class="form-control modal-text" id="edit_userRole" name="userrole" required>
-                                <option value="superadmin">Superadmin</option>
-                                <option value="admin">Admin</option>
-                                <option value="user">User</option>
+                                <option value="user">ผู้ใช้งาน</option>
+                                <option value="admin">เจ้าหน้าที่พัสดุ</option>
+                                <option value="superadmin">ผู้ดูแลระบบ</option>
                             </select>
                         </div>
                         <div class="modal-footer">
@@ -269,10 +280,17 @@ if ($userrole == 'admin' || $userrole == 'superadmin') {  //เช็ค role ad
     </div>
 </body>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+console.log("Session Info:");
+console.log("User ID:", <?php echo json_encode($_SESSION['user_id'] ?? 'ไม่พบ'); ?>);
+console.log("Full Name:", <?php echo json_encode($_SESSION['fullname'] ?? 'ไม่พบ'); ?>);
+console.log("Email:", <?php echo json_encode($_SESSION['user_email'] ?? 'ไม่พบ'); ?>);
+console.log("Role:", <?php echo json_encode($_SESSION['user_role'] ?? 'ไม่พบ'); ?>);
+
+
 $(document).ready(function() {
     // ปุ่มแก้ไข
     $(".edit-btn").on("click", function(e) {
@@ -280,19 +298,25 @@ $(document).ready(function() {
         var id = $(this).data('id');
 
         var fullText = $(this).closest('tr').find('td:nth-child(1)').text().trim();
-        var splitText = fullText.split(/\s+/); // แยกด้วยช่องว่าง
-        var prefix = splitText.length > 1 ? splitText[0].trim() : ""; // คำนำหน้า
-        var name = splitText.slice(1).join(" ").trim(); // ชื่อ-สกุลที่เหลือ
+        var splitText = fullText.split(/\s+/);
+        var prefix = splitText.length > 1 ? splitText[0].trim() : "";
+        var name = splitText.slice(1).join(" ").trim();
 
         var email = $(this).closest('tr').find('td:nth-child(2)').text().trim();
-        var userRole = $(this).closest('tr').find('td:nth-child(3)').text().trim();
+        var userRoleLabel = $(this).closest('tr').find('td:nth-child(3)').text().trim();
 
-        // ใส่ค่าลงฟอร์มแก้ไข
+        const roleMap = {
+            'ผู้ดูแลระบบ': 'superadmin',
+            'เจ้าหน้าที่พัสดุ': 'admin',
+            'ผู้ใช้งาน': 'user'
+        };
+        var userRoleValue = roleMap[userRoleLabel] || '';
+
         $('#edit_id').val(id);
-        $('#edit_prefix').val(prefix); // กำหนดค่า prefix ที่แยกออกมา
+        $('#edit_prefix').val(prefix);
         $('#edit_name').val(name);
         $('#edit_email').val(email);
-        $('#edit_userRole').val(userRole);
+        $('#edit_userRole').val(userRoleValue);
         $('#editModal').modal('show');
     });
 

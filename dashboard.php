@@ -1,3 +1,16 @@
+<?php
+session_start();
+require_once 'db.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$userrole = $_SESSION['user_role'];
+
+?>
 <!DOCTYPE html>
 <html lang="th">
 
@@ -6,7 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ระบบจัดการพัสดุในหน่วยงาน</title>
 
-    <!-- Bootstrap 5.3 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
     body {
@@ -52,6 +65,15 @@
     .data-table th {
         vertical-align: middle !important;
     }
+
+    .table-rounded {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+    tbody td:first-child, th:first-child {
+        padding-left: 15px;
+    }
     </style>
 </head>
 
@@ -76,8 +98,15 @@
                     <li class="nav-item">
                         <a class="nav-link" href="record_score.php">บันทึกคะแนน</a>
                     </li>
+                    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="subject.php">เกรดแต่ละรายวิชา</a>
+                        <a class="nav-link" href="user_management.php">จัดการผู้ใช้งาน</a>
+                    </li>
+                    <?php endif; ?>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning" href="logout.php">
+                            <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -138,8 +167,8 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="mb-3">รายการพัสดุล่าสุด</h5>
-                <div class="table-responsive rounded">
-                    <table class="table table-bordered table-hover data-table">
+                <div class="table-responsive table-rounded shadow-sm">
+                    <table class="table table-bordered table-hover data-table mb-0">
                         <thead class="table-dark">
                             <tr>
                                 <th>ชื่อ</th>
@@ -183,6 +212,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
     <script>
+    console.log("Session Info:");
+    console.log("User ID:", <?php echo json_encode($_SESSION['user_id'] ?? 'ไม่พบ'); ?>);
+    console.log("Full Name:", <?php echo json_encode($_SESSION['fullname'] ?? 'ไม่พบ'); ?>);
+    console.log("Email:", <?php echo json_encode($_SESSION['user_email'] ?? 'ไม่พบ'); ?>);
+    console.log("Role:", <?php echo json_encode($_SESSION['user_role'] ?? 'ไม่พบ'); ?>);
+
     const ctx = document.getElementById('assetPieChart').getContext('2d');
 
     const dataValues = [40, 35, 25];

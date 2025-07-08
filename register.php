@@ -1,8 +1,5 @@
 <?php
 include('db.php');
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-require 'vendor/autoload.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {    
     $prefix = $_POST['prefix'];
@@ -153,12 +150,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <div class="form-group">
                     <label for="fullname">ชื่อ-สกุล</label>
-                    <input type="text" class="form-control" id="fullname" name="fullname" required
+                    <input type="text" class="form-control" id="fullname" name="fullname" required autocomplete="off"
                         value="<?php echo isset($fullname) ? $fullname : ''; ?>">
                 </div>
                 <div class="form-group">
                     <label for="email">อีเมล</label>
-                    <input type="email" class="form-control" id="email" name="email" required
+                    <input type="email" class="form-control" id="email" name="email" required autocomplete="off"
                         value="<?php echo isset($email) ? $email : ''; ?>">
                 </div>
                 <div class="form-group">
