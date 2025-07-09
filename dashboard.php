@@ -68,10 +68,11 @@ $userrole = $_SESSION['user_role'];
 
     .table-rounded {
         border-radius: 12px;
-        overflow: hidden;
         border: 1px solid #dee2e6;
     }
-    tbody td:first-child, th:first-child {
+
+    tbody td:first-child,
+    th:first-child {
         padding-left: 15px;
     }
     </style>
@@ -93,10 +94,7 @@ $userrole = $_SESSION['user_role'];
                         <a class="nav-link active" href="dashboard.php">ระบบจัดการพัสดุในหน่วยงาน</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="searchreport_student.php">ค้นหาข้อมูลนักเรียน</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="record_score.php">บันทึกคะแนน</a>
+                        <a class="nav-link" href="parcel_management.php">จัดการพัสดุ</a>
                     </li>
                     <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                     <li class="nav-item">
