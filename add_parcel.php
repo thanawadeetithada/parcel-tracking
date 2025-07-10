@@ -8,7 +8,7 @@ function fixDateFormat($inputDate) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $item_name = $_POST['item_name'];
-    $user_license = $_POST['user_license'];
+    $category = $_POST['category'];
     $usage_duration = $_POST['usage_duration'];
     $price = $_POST['price'];
     $budget_year = $_POST['budget_year'];
@@ -22,9 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt = $conn->prepare("INSERT INTO parcels 
-        (item_name, user_license, usage_duration, price, budget_year, start_date, end_date, user_responsible, note) 
+        (item_name, category, usage_duration, price, budget_year, start_date, end_date, user_responsible, note) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sisdissss", $item_name, $user_license, $usage_duration, $price, $budget_year, $start_date, $end_date, $user_responsible, $note);
+    $stmt->bind_param("sssdissss", $item_name, $category, $usage_duration, $price, $budget_year, $start_date, $end_date, $user_responsible, $note);
 
     if ($stmt->execute()) {
         header("Location: parcel_management.php?success=1");

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 10, 2025 at 03:57 AM
+-- Generation Time: Jul 10, 2025 at 05:41 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -30,23 +30,24 @@ SET time_zone = "+00:00";
 CREATE TABLE `parcels` (
   `id` int(11) NOT NULL,
   `item_name` varchar(255) NOT NULL,
-  `user_license` int(11) NOT NULL,
+  `category` varchar(100) NOT NULL,
   `usage_duration` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL,
   `budget_year` varchar(10) NOT NULL,
   `start_date` date NOT NULL,
   `end_date` date NOT NULL,
   `user_responsible` varchar(255) NOT NULL,
-  `note` text DEFAULT NULL
+  `note` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `parcels`
 --
 
-INSERT INTO `parcels` (`id`, `item_name`, `user_license`, `usage_duration`, `price`, `budget_year`, `start_date`, `end_date`, `user_responsible`, `note`) VALUES
-(5, 'fern', 1, 13, 800.00, '2567', '2025-06-30', '2025-07-08', 'test', 'test naja'),
-(6, 'testqqqqqqqqqqqqqqqqqqqqqqqq', 1, 13, 800.00, '2567', '2025-07-01', '2025-07-13', 'test', 'test naja');
+INSERT INTO `parcels` (`id`, `item_name`, `category`, `usage_duration`, `price`, `budget_year`, `start_date`, `end_date`, `user_responsible`, `note`, `created_at`, `updated_at`) VALUES
+(16, 'Microsoft 365', '5', 365, 4990.00, '2567', '2025-07-01', '2025-07-11', 'test1', 'ใช้งานภายในสำนักงาน', '2025-07-10 03:16:49', '2025-07-10 03:28:03');
 
 -- --------------------------------------------------------
 
@@ -99,7 +100,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `parcels`
 --
 ALTER TABLE `parcels`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `users`

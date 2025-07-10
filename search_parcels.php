@@ -18,7 +18,7 @@ if ($result->num_rows > 0) {
         echo "<tr class='text-center'>
                 <td>{$i}</td>
                 <td class='text-left'>" . htmlspecialchars($row['item_name']) . "</td>
-                <td>" . htmlspecialchars($row['user_license']) . "</td>
+                <td>" . htmlspecialchars($row['category']) . "</td>
                 <td>" . htmlspecialchars($row['usage_duration']) . "</td>
                 <td>" . htmlspecialchars($row['price']) . "</td>
                 <td>" . htmlspecialchars($row['budget_year']) . "</td>
@@ -31,7 +31,7 @@ if ($result->num_rows > 0) {
                 data-bs-target='#editModal'
                 data-id='" . $row['id'] . "'
                 data-item_name='" . htmlspecialchars($row['item_name']) . "'
-                data-user_license='" . $row['user_license'] . "'
+                data-category='" . $row['category'] . "'
                 data-usage_duration='" . $row['usage_duration'] . "'
                 data-price='" . $row['price'] . "'
                 data-budget_year='" . $row['budget_year'] . "'

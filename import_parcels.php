@@ -17,7 +17,7 @@ if (isset($_FILES['excel_file']) && $_FILES['excel_file']['error'] === 0) {
 
             // แยกค่าจาก Excel
             $item_name = $row[0];
-            $user_license = intval($row[1]);
+            $category = $row[1];
             $usage_duration = intval($row[2]);
             $price = floatval($row[3]);
             $budget_year = $row[4];
@@ -28,15 +28,15 @@ if (isset($_FILES['excel_file']) && $_FILES['excel_file']['error'] === 0) {
 
             $stmt = $conn->prepare("
                 INSERT INTO parcels (
-                    item_name, user_license, usage_duration, price, budget_year,
+                    item_name, category, usage_duration, price, budget_year,
                     start_date, end_date, user_responsible, note
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
             $stmt->bind_param(
-                "siidsssss",
+                "ssidsssss",
                 $item_name,
-                $user_license,
+                $category,
                 $usage_duration,
                 $price,
                 $budget_year,

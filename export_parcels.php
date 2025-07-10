@@ -35,7 +35,7 @@ $sheet = $spreadsheet->getActiveSheet();
 
 // Header
 $sheet->fromArray([
-    'ชื่อ', 'User/License', 'ระยะเวลา', 'ราคา', 'งปม',
+    'ชื่อ', 'ประเภท', 'ระยะเวลา', 'ราคา', 'งปม',
     'เริ่มใช้งาน', 'สิ้นสุดใช้งาน', 'ผู้ใช้งาน', 'หมายเหตุ'
 ], NULL, 'A1');
 
@@ -44,7 +44,7 @@ $rowIndex = 2;
 while ($row = $result->fetch_assoc()) {
     $sheet->fromArray([
         $row['item_name'],
-        $row['user_license'],
+        $row['category'],
         $row['usage_duration'],
         $row['price'],
         $row['budget_year'],

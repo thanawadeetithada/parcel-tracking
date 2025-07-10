@@ -10,6 +10,34 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $userrole = $_SESSION['user_role'];
 
+$sqlRecent = "SELECT item_name, usage_duration, price, budget_year, start_date, end_date, user_responsible 
+              FROM parcels ORDER BY created_at DESC LIMIT 5";
+$recentParcels = $conn->query($sqlRecent);
+
+$sqlTotal = "SELECT COUNT(*) as total FROM parcels";
+$totalResult = $conn->query($sqlTotal)->fetch_assoc()['total'];
+
+$today = date('Y-m-d');
+$sqlNew = "SELECT COUNT(*) as new_count FROM parcels WHERE DATE(created_at) = '$today'";
+$newResult = $conn->query($sqlNew)->fetch_assoc()['new_count'];
+
+$today = date('Y-m-d');
+$next3Days = date('Y-m-d', strtotime('+3 days'));
+$sqlExpiring = "SELECT COUNT(*) as expiring FROM parcels WHERE end_date BETWEEN '$today' AND '$next3Days'";
+$expiringResult = $conn->query($sqlExpiring)->fetch_assoc()['expiring'];
+
+$sqlExpiringItems = "SELECT item_name, end_date FROM parcels WHERE end_date BETWEEN '$today' AND '$next3Days'";
+$expiringItems = $conn->query($sqlExpiringItems);
+
+$categoryData = [];
+$result = $conn->query("SELECT category, COUNT(*) as count FROM parcels GROUP BY category");
+
+while ($row = $result->fetch_assoc()) {
+    $categoryData[] = [
+        'label' => $row['category'],
+        'count' => $row['count']
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -118,19 +146,19 @@ $userrole = $_SESSION['user_role'];
             <div class="col-md-4">
                 <div class="summary-card">
                     <h4>รายการทั้งหมด</h4>
-                    <div class="number">256</div>
+                    <div class="number"><?= $totalResult ?></div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="summary-card" style="background-color: #ffe4cc;">
                     <h4>รายการใกล้หมดอายุ</h4>
-                    <div class="number text-danger">5</div>
+                    <div class="number text-danger"><?= $expiringResult ?></div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="summary-card" style="background-color: #e3ffe3;">
                     <h4>รายการเข้าใหม่</h4>
-                    <div class="number text-success">12</div>
+                    <div class="number text-success"><?= $newResult ?></div>
                 </div>
             </div>
         </div>
@@ -144,19 +172,32 @@ $userrole = $_SESSION['user_role'];
                         <canvas id="assetPieChart"></canvas>
                     </div>
                     <ul class="mt-3 text-start" style="font-size: 14px;">
-                        <li>อุปกรณ์สำนักงาน 40%</li>
-                        <li>ซิลิคอนกราฟิกส์ 35%</li>
-                        <li>วัสดุอื่น 25%</li>
+                        <?php
+    $total = array_sum(array_column($categoryData, 'count'));
+    foreach ($categoryData as $cat) {
+        $percent = $total > 0 ? round(($cat['count'] / $total) * 100) : 0;
+        echo "<li>" . htmlspecialchars($cat['label']) . " {$percent}%</li>";
+    }
+    ?>
                     </ul>
+
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="warning-box">
                     <strong>แจ้งเตือน</strong>
                     <ul class="mt-2">
-                        <li>โปรแกรม Adobe Premiere Pro จะหมดอายุภายใน 30 วัน</li>
-                        <li>ต่ออายุโปรแกรม Chat Gbt Plus</li>
+                        <?php if ($expiringItems && $expiringItems->num_rows > 0): ?>
+                        <?php while ($row = $expiringItems->fetch_assoc()): ?>
+                        <li><?= htmlspecialchars($row['item_name']) ?> <span class="text-danger">จะหมดอายุในวันที่
+                            </span><?= date('d/m/Y', strtotime($row['end_date'])) ?></li>
+
+                        <?php endwhile; ?>
+                        <?php else: ?>
+                        <li>ไม่มีรายการใกล้หมดอายุภายใน 3 วัน</li>
+                        <?php endif; ?>
                     </ul>
+
                 </div>
             </div>
         </div>
@@ -179,25 +220,19 @@ $userrole = $_SESSION['user_role'];
                             </tr>
                         </thead>
                         <tbody>
+                            <?php while ($row = $recentParcels->fetch_assoc()): ?>
                             <tr>
-                                <td>โปรแกรม Adobe Premiere Pro</td>
-                                <td>1 ปี</td>
-                                <td>9,600</td>
-                                <td>2566</td>
-                                <td>21/2/09</td>
-                                <td>20/2/10</td>
-                                <td>ชาญชัย</td>
+                                <td><?= htmlspecialchars($row['item_name']) ?></td>
+                                <td><?= htmlspecialchars($row['usage_duration']) ?> วัน</td>
+                                <td><?= number_format($row['price'], 2) ?></td>
+                                <td><?= htmlspecialchars($row['budget_year']) ?></td>
+                                <td><?= date('d/m/Y', strtotime($row['start_date'])) ?></td>
+                                <td><?= date('d/m/Y', strtotime($row['end_date'])) ?></td>
+                                <td><?= htmlspecialchars($row['user_responsible']) ?></td>
                             </tr>
-                            <tr>
-                                <td>ต่ออายุโปรแกรม Chat Gbt Plus</td>
-                                <td>1 ปี</td>
-                                <td>1,160</td>
-                                <td>2567</td>
-                                <td>12/6/11</td>
-                                <td>11/6/11</td>
-                                <td>อนวัช, ภิรดี</td>
-                            </tr>
+                            <?php endwhile; ?>
                         </tbody>
+
                     </table>
                 </div>
             </div>
@@ -218,29 +253,30 @@ $userrole = $_SESSION['user_role'];
 
     const ctx = document.getElementById('assetPieChart').getContext('2d');
 
-    const dataValues = [40, 35, 25];
-    const total = dataValues.reduce((a, b) => a + b, 0);
+    const categoryLabels = <?= json_encode(array_column($categoryData, 'label')) ?>;
+    const rawCounts = <?= json_encode(array_column($categoryData, 'count')) ?>;
+    const categoryCounts = rawCounts.map(x => Number(x));
 
-    const pieChart = new Chart(ctx, {
+    const pieChart = new Chart(document.getElementById('assetPieChart'), {
         type: 'pie',
         data: {
-            labels: ['อุปกรณ์สำนักงาน', 'ซิลิคอนกราฟิกส์', 'วัสดุอื่น'],
+            labels: categoryLabels,
             datasets: [{
-                data: dataValues,
-                backgroundColor: ['#4e73df', '#f6c23e', '#36b9cc']
+                data: categoryCounts,
+                backgroundColor: ['#4e73df', '#f6c23e', '#36b9cc', '#e74a3b', '#1cc88a']
             }]
         },
         options: {
             plugins: {
                 datalabels: {
-                    color: '#fff',
-                    formatter: (value, context) => {
-                        const percentage = (value / total * 100).toFixed(0);
-                        return percentage + '%';
+                    formatter: (value, ctx) => {
+                        const dataArr = ctx.chart.data.datasets[0].data;
+                        const total = dataArr.reduce((a, b) => a + b, 0);
+                        return ((value / total) * 100).toFixed(0) + '%';
                     },
+                    color: '#fff',
                     font: {
-                        weight: 'bold',
-                        size: 14
+                        weight: 'bold'
                     }
                 }
             }

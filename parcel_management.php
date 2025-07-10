@@ -32,6 +32,12 @@ if ($userResult && $userResult->num_rows > 0) {
         $userOptions[] = $row['fullname'];
     }
 }
+
+$today = date('Y-m-d');
+$next3Days = date('Y-m-d', strtotime('+3 days'));
+$sqlExpiringCount = "SELECT COUNT(*) as count FROM parcels WHERE end_date BETWEEN '$today' AND '$next3Days'";
+$expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
+
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -196,12 +202,14 @@ if ($userResult && $userResult->num_rows > 0) {
             </div>
 
             <!-- แจ้งเตือน -->
+            <?php if ($expiringCount > 0): ?>
             <div class="alert alert-warning d-flex align-items-center" role="alert">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>
                 <div>
-                    พบพัสดุ 2 รายการใกล้หมดอายุ | ระบบส่งแจ้งเตือนไปยัง Google Chat และอีเมลแล้ว
+                    พบพัสดุ <?= $expiringCount ?> รายการใกล้หมดอายุ | ระบบส่งแจ้งเตือนไปยังอีเมลแล้ว
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- ตาราง -->
             <div class="table-responsive table-rounded shadow-sm">
@@ -210,10 +218,10 @@ if ($userResult && $userResult->num_rows > 0) {
                         <tr class="header-table">
                             <th>ลำดับ</th>
                             <th>ชื่อ</th>
-                            <th>User/License</th>
+                            <th>ประเภท</th>
                             <th>ระยะเวลา</th>
                             <th>ราคา</th>
-                            <th>งปม</th>
+                            <th>งปม.</th>
                             <th>เริ่มต้นใช้งาน</th>
                             <th>สิ้นสุดการใช้งาน</th>
                             <th>ผู้ใช้งาน</th>
@@ -227,7 +235,7 @@ if ($userResult && $userResult->num_rows > 0) {
                         <tr class="text-center">
                             <td><?= $i++ ?></td>
                             <td class="text-left"><?= htmlspecialchars($row['item_name']) ?></td>
-                            <td><?= htmlspecialchars($row['user_license']) ?></td>
+                            <td><?= htmlspecialchars($row['category']) ?></td>
                             <td><?= htmlspecialchars($row['usage_duration']) ?></td>
                             <td style="white-space: nowrap;"><?= htmlspecialchars($row['price']) ?></td>
                             <td style="white-space: nowrap;"><?= htmlspecialchars($row['budget_year']) ?></td>
@@ -241,7 +249,7 @@ if ($userResult && $userResult->num_rows > 0) {
                                 <button class="btn btn-sm btn-warning btn-edit" data-bs-toggle="modal"
                                     data-bs-target="#editModal" data-id="<?= $row['id'] ?>"
                                     data-item_name="<?= htmlspecialchars($row['item_name']) ?>"
-                                    data-user_license="<?= $row['user_license'] ?>"
+                                    data-category="<?= $row['category'] ?>"
                                     data-usage_duration="<?= $row['usage_duration'] ?>"
                                     data-price="<?= $row['price'] ?>" data-budget_year="<?= $row['budget_year'] ?>"
                                     data-start_date="<?= $row['start_date'] ?>" data-end_date="<?= $row['end_date'] ?>"
@@ -286,11 +294,11 @@ if ($userResult && $userResult->num_rows > 0) {
                                 <input type="text" name="item_name" class="form-control" required />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">User/License</label>
-                                <input type="number" name="user_license" class="form-control" required />
+                                <label class="form-label">ประเภท</label>
+                                <input type="text" name="category" class="form-control" required />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">ปีงบประมาณ</label>
+                                <label class="form-label">งปม.</label>
                                 <input type="text" name="budget_year" class="form-control" required />
                             </div>
                             <div class="col-md-6">
@@ -354,12 +362,11 @@ if ($userResult && $userResult->num_rows > 0) {
                                 <input type="text" name="item_name" id="edit-item_name" class="form-control" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">User/License</label>
-                                <input type="number" name="user_license" id="edit-user_license" class="form-control"
-                                    required>
+                                <label class="form-label">ประเภท</label>
+                                <input type="text" name="category" id="edit-category" class="form-control" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">ปีงบประมาณ</label>
+                                <label class="form-label">งปม.</label>
                                 <input type="text" name="budget_year" id="edit-budget_year" class="form-control"
                                     required>
                             </div>
@@ -532,7 +539,7 @@ if ($userResult && $userResult->num_rows > 0) {
         const btn = $(this);
         $("#edit-id").val(btn.data("id"));
         $("#edit-item_name").val(btn.data("item_name"));
-        $("#edit-user_license").val(btn.data("user_license"));
+        $("#edit-category").val(btn.data("category"));
         $("#edit-usage_duration").val(btn.data("usage_duration"));
         $("#edit-price").val(btn.data("price"));
         $("#edit-budget_year").val(btn.data("budget_year"));
