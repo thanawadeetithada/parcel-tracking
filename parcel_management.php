@@ -38,6 +38,11 @@ $next3Days = date('Y-m-d', strtotime('+3 days'));
 $sqlExpiringCount = "SELECT COUNT(*) as count FROM parcels WHERE end_date BETWEEN '$today' AND '$next3Days'";
 $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
 
+$emailOptions = [];
+$emailResult = $conn->query("SELECT email FROM users WHERE email IS NOT NULL AND email != '' ORDER BY email ASC");
+while ($row = $emailResult->fetch_assoc()) {
+    $emailOptions[] = $row['email'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -107,6 +112,11 @@ $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
         top: 0px;
         right: 0.75rem;
     }
+
+    .select2-container--default .select2-selection--multiple {
+        margin-bottom: 5px;
+        padding-bottom: 10px;
+    }
     </style>
 </head>
 
@@ -146,6 +156,10 @@ $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2><i class="fa-solid fa-box"></i> ระบบจัดการพัสดุ</h2>
                 <div>
+                    <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal"
+                        data-bs-target="#emailModal">
+                        <i class="fa-solid fa-envelope"></i> ส่ง Email แจ้งเตือน
+                    </button>
                     <a id="export-btn" class="btn btn-success me-2">
                         <i class="fa-solid fa-file-export"></i> ส่งออก Excel
                     </a>
@@ -206,7 +220,7 @@ $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
             <div class="alert alert-warning d-flex align-items-center" role="alert">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>
                 <div>
-                    พบพัสดุ <?= $expiringCount ?> รายการใกล้หมดอายุ | ระบบส่งแจ้งเตือนไปยังอีเมลแล้ว
+                    พบพัสดุ <?= $expiringCount ?> รายการใกล้หมดอายุ
                 </div>
             </div>
             <?php endif; ?>
@@ -320,7 +334,7 @@ $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">ผู้ใช้งาน</label>
-                                <select name="user_responsible" class="form-select select2" required>
+                                <select name="user_responsible" class="form-select select2-user" required>
                                     <option value="">-- เลือกผู้ใช้งาน --</option>
                                     <?php foreach ($userOptions as $user): ?>
                                     <option value="<?= $user ?>"><?= htmlspecialchars($user) ?></option>
@@ -389,8 +403,8 @@ $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">ผู้ใช้งาน</label>
-                                <select name="user_responsible" id="edit-user_responsible" class="form-select select2"
-                                    required>
+                                <select name="user_responsible" id="edit-user_responsible"
+                                    class="form-select select2-user" required>
                                     <option value="">-- เลือกผู้ใช้งาน --</option>
                                     <?php foreach ($userOptions as $user): ?>
                                     <option value="<?= $user ?>"><?= htmlspecialchars($user) ?></option>
@@ -453,7 +467,6 @@ $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
         </div>
     </div>
 
-
     <!-- Loading Overlay -->
     <div id="loading-overlay"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(255,255,255,0.7); z-index:9999;">
@@ -461,6 +474,48 @@ $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
             <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal แจ้งผลส่งอีเมลสำเร็จ -->
+    <div class="modal fade" id="emailSuccessModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <h5 class="mb-3">
+                    <i class="fa-solid fa-circle-check text-success fa-2x"></i>
+                </h5>
+                <p class="mb-3">ส่งอีเมลแจ้งเตือนพัสดุสำเร็จแล้ว</p>
+                <div>
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal เลือกอีเมล -->
+    <div class="modal fade" id="emailModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="send_expiring_email.php" method="POST">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fa-solid fa-envelope"></i> เลือกอีเมลผู้รับ</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label class="form-label">เลือกอีเมล (เลือกได้หลายคน)</label>
+                        <select name="emails[]" class="form-select select2-email" multiple required>
+                            <?php foreach ($emailOptions as $email): ?>
+                            <option value="<?= $email ?>"><?= $email ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small class="text-muted">หากไม่มีในรายการสามารถพิมพ์เพิ่มได้</small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button type="submit" class="btn btn-warning">ส่งอีเมล</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -483,6 +538,15 @@ $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
 
     $(document).ready(function() {
         const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("email_sent") === "1") {
+            const modal = new bootstrap.Modal(document.getElementById("emailSuccessModal"));
+            modal.show();
+            setTimeout(() => {
+                modal.hide();
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 2500);
+        }
+
         if (urlParams.get("success") === "1") {
             const modal = new bootstrap.Modal(document.getElementById("importSuccessModal"));
             modal.show();
@@ -492,16 +556,36 @@ $expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
             }, 2500);
         }
 
-        $('.select2').select2({
-            width: '100%',
+        $('.select2-user').select2({
             placeholder: "-- เลือกผู้ใช้งาน --",
+            width: '100%',
             allowClear: true
         });
 
+        // สำหรับอีเมล
+        $('.select2-email').select2({
+            placeholder: "เลือกหรือพิมพ์อีเมลผู้รับ...",
+            width: '100%',
+            tags: true, // ให้พิมพ์อีเมลเองได้
+            tokenSeparators: [',', ' '],
+            maximumSelectionLength: 10 // จำกัดจำนวนสูงสุดถ้าต้องการ
+        });
+
         $('#addModal, #editModal').on('shown.bs.modal', function() {
-            $(this).find('.select2').select2({
+            $(this).find('.select2-user').select2({
+                dropdownParent: $(this),
                 width: '100%',
-                dropdownParent: $(this)
+                placeholder: "-- เลือกผู้ใช้งาน --",
+                allowClear: true
+            });
+        });
+
+        $('#emailModal').on('shown.bs.modal', function() {
+            $(this).find('.select2-email').select2({
+                dropdownParent: $(this),
+                width: '100%',
+                placeholder: "เลือกหรือพิมพ์อีเมลผู้รับ...",
+                tags: true
             });
         });
 
