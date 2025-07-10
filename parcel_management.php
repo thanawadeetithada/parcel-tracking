@@ -138,7 +138,17 @@ if ($userResult && $userResult->num_rows > 0) {
                 <h2><i class="fa-solid fa-box"></i> ระบบจัดการพัสดุ</h2>
                 <div>
                     <button class="btn btn-success me-2"><i class="fa-solid fa-file-export"></i> ส่งออก Excel</button>
-                    <button class="btn btn-secondary me-2"><i class="fa-solid fa-file-import"></i> นำเข้า Excel</button>
+                    <!-- ปุ่มนำเข้า -->
+                    <form action="import_parcels.php" method="POST" enctype="multipart/form-data" id="import-form"
+                        style="display: inline;">
+                        <input type="file" name="excel_file" id="excel-file" accept=".xlsx" style="display: none;"
+                            onchange="document.getElementById('import-form').submit();">
+                        <button type="button" class="btn btn-secondary me-2"
+                            onclick="document.getElementById('excel-file').click();">
+                            <i class="fa-solid fa-file-import"></i> นำเข้า Excel
+                        </button>
+                    </form>
+
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal"><i
                             class="fa-solid fa-plus"></i> เพิ่มพัสดุ</button>
                 </div>
@@ -412,8 +422,35 @@ if ($userResult && $userResult->num_rows > 0) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Modal แจ้งผลนำเข้าสำเร็จ -->
+    <div class="modal fade" id="importSuccessModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4">
+                <h5 class="mb-3">
+                    <i class="fa-solid fa-circle-check text-success fa-2x"></i>
+                </h5>
+                <p class="mb-3">นำเข้าข้อมูลสำเร็จแล้ว</p>
+                <div>
+                    <button style="width: 30%;" type="button" class="btn btn-success" data-bs-dismiss="modal">
+                        ปิด
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(255,255,255,0.7); z-index:9999;">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -425,7 +462,21 @@ if ($userResult && $userResult->num_rows > 0) {
     console.log("Email:", <?php echo json_encode($_SESSION['user_email'] ?? 'ไม่พบ'); ?>);
     console.log("Role:", <?php echo json_encode($_SESSION['user_role'] ?? 'ไม่พบ'); ?>);
 
+    $("#excel-file").on("change", function() {
+        $("#loading-overlay").show(); // แสดง overlay
+        $("#import-form").submit();
+    });
+
     $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("success") === "1") {
+            const modal = new bootstrap.Modal(document.getElementById("importSuccessModal"));
+            modal.show();
+            setTimeout(() => {
+                modal.hide();
+            }, 2500);
+        }
+
         $('.select2').select2({
             width: '100%',
             placeholder: "-- เลือกผู้ใช้งาน --",
