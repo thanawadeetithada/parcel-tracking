@@ -153,29 +153,39 @@ while ($row = $emailResult->fetch_assoc()) {
     </nav>
     <div class="card">
         <div class="container py-1">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2><i class="fa-solid fa-box"></i> ระบบจัดการพัสดุ</h2>
-                <div>
-                    <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal"
-                        data-bs-target="#emailModal">
-                        <i class="fa-solid fa-envelope"></i> ส่ง Email แจ้งเตือน
-                    </button>
-                    <a id="export-btn" class="btn btn-success me-2">
-                        <i class="fa-solid fa-file-export"></i> ส่งออก Excel
-                    </a>
-                    <!-- ปุ่มนำเข้า -->
-                    <form action="import_parcels.php" method="POST" enctype="multipart/form-data" id="import-form"
-                        style="display: inline;">
-                        <input type="file" name="excel_file" id="excel-file" accept=".xlsx" style="display: none;"
-                            onchange="document.getElementById('import-form').submit();">
-                        <button type="button" class="btn btn-secondary me-2"
-                            onclick="document.getElementById('excel-file').click();">
-                            <i class="fa-solid fa-file-import"></i> นำเข้า Excel
-                        </button>
-                    </form>
+            <h3><i class="fa-solid fa-box"></i> ระบบจัดการพัสดุ</h3><br>
+            <div class="mb-3">
+                <div class="row">
+                    <div
+                        class="col-12 d-flex flex-wrap align-items-end gap-2 flex-column flex-md-row justify-content-md-end">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-warning" data-bs-toggle="modal"
+                                data-bs-target="#emailModal">
+                                <i class="fa-solid fa-envelope"></i> ส่ง Email แจ้งเตือน
+                            </button>
 
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal"><i
-                            class="fa-solid fa-plus"></i> เพิ่มพัสดุ</button>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+                                <i class="fa-solid fa-plus"></i> เพิ่มพัสดุ
+                            </button>
+                        </div>
+
+                        <!-- บรรทัดใหม่ -->
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <a id="export-btn" class="btn btn-success">
+                                <i class="fa-solid fa-file-export"></i> ส่งออก Excel
+                            </a>
+
+                            <form action="import_parcels.php" method="POST" enctype="multipart/form-data"
+                                id="import-form" style="display: inline;">
+                                <input type="file" name="excel_file" id="excel-file" accept=".xlsx"
+                                    style="display: none;" onchange="document.getElementById('import-form').submit();">
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="document.getElementById('excel-file').click();">
+                                    <i class="fa-solid fa-file-import"></i> นำเข้า Excel
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
 

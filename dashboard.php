@@ -61,6 +61,7 @@ while ($row = $result->fetch_assoc()) {
         text-align: center;
         padding: 20px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
     }
 
     .summary-card h4 {
@@ -142,7 +143,7 @@ while ($row = $result->fetch_assoc()) {
     <!-- Main Container -->
     <div class="container my-4">
         <!-- Summary Row -->
-        <div class="row text-center mb-4">
+        <div class="row text-center mb-2">
             <div class="col-md-4">
                 <div class="summary-card">
                     <h4>รายการทั้งหมด</h4>
@@ -223,7 +224,7 @@ while ($row = $result->fetch_assoc()) {
                             <?php while ($row = $recentParcels->fetch_assoc()): ?>
                             <tr>
                                 <td><?= htmlspecialchars($row['item_name']) ?></td>
-                                <td><?= htmlspecialchars($row['usage_duration']) ?> วัน</td>
+                                <td><?= htmlspecialchars($row['usage_duration']) ?></td>
                                 <td><?= number_format($row['price'], 2) ?></td>
                                 <td><?= htmlspecialchars($row['budget_year']) ?></td>
                                 <td><?= date('d/m/Y', strtotime($row['start_date'])) ?></td>

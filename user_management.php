@@ -65,35 +65,27 @@ $stmt->close();
         min-height: 100vh;
 
     }
-
-
     .modal-content {
         width: 100%;
         max-width: 500px;
     }
-
     .header-card {
         display: flex;
         justify-content: center;
     }
-
     .form-control modal-text {
         height: fit-content;
         width: 50%;
     }
-
     .table td:nth-child(9) {
         text-align: center;
         vertical-align: middle;
     }
-
     .btn-action {
         display: flex;
         justify-content: center;
         align-items: center;
     }
-
-
     .modal-text {
         width: 100%;
     }
@@ -111,10 +103,13 @@ $stmt->close();
         border-radius: 12px;
         border: 1px solid #dee2e6;
     }
-
     tbody td:first-child,
     th:first-child {
         padding-left: 15px;
+    }
+
+    .table td {
+        white-space: nowrap;
     }
     </style>
 </head>
@@ -154,7 +149,7 @@ $stmt->close();
     <div class="card">
         <?php if (isset($result) && $result->num_rows > 0): ?>
         <div class="header-card">
-            <h3 class="text-left">จัดการผู้ใช้งาน</h3><br>
+            <h3>จัดการผู้ใช้งาน</h3><br>
         </div>
         <?php endif; ?>
         <br>
