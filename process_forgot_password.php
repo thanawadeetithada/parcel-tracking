@@ -28,19 +28,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
             exit;
         }
 
-        $resetLink = "http://localhost/tracking_document/reset_password.php?token=$token";
+        $resetLink = "https://parcel-tracking.ct.ws/reset_password.php?token=$token";
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
-            $mail->Username = 'mitinventor015@gmail.com';
-            $mail->Password = 'ukebjwmfzmwuipjw';
+            $mail->Username = 'satreertapp@gmail.com';
+            $mail->Password = 'oxluxaoyrgcneqyo';
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
         
             $mail->setFrom('noreply@mail.com', 'noreply');
-        
+            $mail->CharSet = 'UTF-8';
+            $mail->Encoding = 'base64';
             $mail->addAddress($email);
         
             $mail->isHTML(true);

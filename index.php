@@ -22,7 +22,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") { // ตรวจสอบหากเ
                 $_SESSION['user_role'] = $user['userrole'];
                 $_SESSION['fullname'] = $user['fullname']; 
                 
-                header("Location: dashboard.php"); // ไปที่หน้า Dashboard
+                if ($user['userrole'] === 'user') {
+                    header("Location: parcel_management.php");
+                } else {
+                    header("Location: dashboard.php");
+                }
                 exit();
         } else {
             $error_message = "❌ รหัสผ่านไม่ถูกต้อง";
@@ -128,13 +132,14 @@ $conn->close();
 <body>
     <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
     <script>
-     alert("ลงทะเบียนสำเร็จแล้ว");
+    alert("ลงทะเบียนสำเร็จแล้ว");
     </script>
     <?php endif; ?>
     <div class="login-wrapper">
         <br>
         <h2 class="login-title">ระบบติดตามการจัดการพัสดุ
-        <br>ของสำนักวิทยบริการ <br>มหาวิทยาลัยอุบลราชธานี</h2>
+            <br>ของสำนักวิทยบริการ <br>มหาวิทยาลัยอุบลราชธานี
+        </h2>
 
         <div class="login-container">
             <?php if (!empty($error_message)): ?>
@@ -146,7 +151,8 @@ $conn->close();
             <form action="index.php" method="POST">
                 <div class="form-group">
                     <label for="exampleInputEmail1">อีเมล</label>
-                    <input type="email" class="form-control" id="exampleInputEmail1" name="email" required autocomplete="off">
+                    <input type="email" class="form-control" id="exampleInputEmail1" name="email" required
+                        autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="exampleInputPassword1">รหัสผ่าน</label>
@@ -155,14 +161,14 @@ $conn->close();
                 <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
             </form>
             <p>
-            <a href="#" id="forgotPasswordLink" data-toggle="modal" data-target="#forgotPasswordModal">
-            ลืมรหัสผ่าน</a>
-             <br>   <a href="register.php">ยังไม่มีบัญชี? ลงทะเบียนใหม่</a>
+                <a href="#" id="forgotPasswordLink" data-toggle="modal" data-target="#forgotPasswordModal">
+                    ลืมรหัสผ่าน</a>
+                <br> <a href="register.php">ยังไม่มีบัญชี? ลงทะเบียนใหม่</a>
             </p>
         </div>
     </div>
 
-      <div class="modal fade" id="forgotPasswordModal" tabindex="-1" role="dialog">
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content modal">
                 <div class="modal-header align-items-center">
@@ -172,7 +178,7 @@ $conn->close();
                     <form id="forgotPasswordForm" method="POST" action="process_forgot_password.php">
                         <div class="form-group">
                             <input type="email" name="email" class="form-control rounded-pill"
-                                placeholder="กรุณาใส่อีเมล" required>
+                                placeholder="กรุณาใส่อีเมล" required autocomplete="off">
                         </div>
                         <div class="modal-btn">
                             <button type="submit" class="btn btn-primary">ตกลง</button>
@@ -183,9 +189,8 @@ $conn->close();
             </div>
         </div>
     </div>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    
 
 
 </body>

@@ -2,6 +2,11 @@
 session_start();
 require_once 'db.php';
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
+
 $search = $_GET['search'] ?? '';
 $startDate = $_GET['start_date'] ?? '';
 $endDate = $_GET['end_date'] ?? '';
@@ -131,9 +136,11 @@ while ($row = $emailResult->fetch_assoc()) {
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="dashboard.php">ระบบจัดการพัสดุในหน่วยงาน</a>
                     </li>
+                    <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link active" href="parcel_management.php">จัดการพัสดุ</a>
                     </li>
@@ -154,6 +161,7 @@ while ($row = $emailResult->fetch_assoc()) {
     <div class="card">
         <div class="container py-1">
             <h3><i class="fa-solid fa-box"></i> ระบบจัดการพัสดุ</h3><br>
+            <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
             <div class="mb-3">
                 <div class="row">
                     <div
@@ -188,7 +196,7 @@ while ($row = $emailResult->fetch_assoc()) {
                     </div>
                 </div>
             </div>
-
+            <?php endif; ?>
             <!-- ฟิลเตอร์ -->
             <div class="row g-3 mb-4">
                 <!-- ฟิลเตอร์ -->
@@ -250,7 +258,9 @@ while ($row = $emailResult->fetch_assoc()) {
                             <th>สิ้นสุดการใช้งาน</th>
                             <th>ผู้ใช้งาน</th>
                             <th>หมายเหตุ</th>
+                            <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                             <th>จัดการ</th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody id="parcel-table-body">
@@ -269,6 +279,7 @@ while ($row = $emailResult->fetch_assoc()) {
                             </td>
                             <td style="white-space: nowrap;"><?= htmlspecialchars($row['user_responsible']) ?></td>
                             <td><?= htmlspecialchars($row['note']) ?: '-' ?></td>
+                            <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                             <td class="btn-edit-delete">
                                 <button class="btn btn-sm btn-warning btn-edit" data-bs-toggle="modal"
                                     data-bs-target="#editModal" data-id="<?= $row['id'] ?>"
@@ -287,6 +298,7 @@ while ($row = $emailResult->fetch_assoc()) {
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </td>
+                            <?php endif; ?>
                         </tr>
                         <?php endwhile; ?>
                         <?php else: ?>

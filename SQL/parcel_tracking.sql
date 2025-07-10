@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 10, 2025 at 05:41 AM
+-- Generation Time: Jul 10, 2025 at 07:34 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,7 +47,9 @@ CREATE TABLE `parcels` (
 --
 
 INSERT INTO `parcels` (`id`, `item_name`, `category`, `usage_duration`, `price`, `budget_year`, `start_date`, `end_date`, `user_responsible`, `note`, `created_at`, `updated_at`) VALUES
-(16, 'Microsoft 365', '5', 365, 4990.00, '2567', '2025-07-01', '2025-07-11', 'test1', 'ใช้งานภายในสำนักงาน', '2025-07-10 03:16:49', '2025-07-10 03:28:03');
+(28, 'Microsoft 365', 'โปรแกรม', 365, 4990.00, '2567', '2025-07-01', '2026-06-30', 'test1', 'ใช้งานภายในสำนักงาน', '2025-07-10 03:49:22', '2025-07-10 03:49:22'),
+(29, 'Adobe Photoshop', 'Ai', 180, 3590.00, '2567', '2025-08-01', '2025-07-12', 'test2', 'ใช้งานภายในสำนักงาน', '2025-07-10 03:49:22', '2025-07-10 05:02:02'),
+(30, 'Adobe', 'โปรแกรม', 13, 800.00, '2567', '2025-07-01', '2025-07-13', 'test', 'ใช้งานภายในสำนักงาน', '2025-07-10 03:55:57', '2025-07-10 05:01:53');
 
 -- --------------------------------------------------------
 
@@ -100,7 +102,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `parcels`
 --
 ALTER TABLE `parcels`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `users`

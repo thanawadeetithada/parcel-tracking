@@ -10,6 +10,14 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $userrole = $_SESSION['user_role'];
 
+if ($userrole == 'admin' || $userrole == 'superadmin') {
+    $sql = "SELECT * FROM users";
+    $result = $conn->query($sql);
+} else {
+    header("Location: index.php");
+    exit();
+}
+
 $sqlRecent = "SELECT item_name, usage_duration, price, budget_year, start_date, end_date, user_responsible 
               FROM parcels ORDER BY created_at DESC LIMIT 5";
 $recentParcels = $conn->query($sqlRecent);
