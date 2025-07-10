@@ -67,7 +67,10 @@ if ($userResult && $userResult->num_rows > 0) {
 
     .btn-edit-delete {
         display: flex;
-        justify-content: space-evenly;
+
+        .btn-edit {
+            margin-right: 5px;
+        }
     }
 
     .header-table {
@@ -137,7 +140,9 @@ if ($userResult && $userResult->num_rows > 0) {
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2><i class="fa-solid fa-box"></i> ระบบจัดการพัสดุ</h2>
                 <div>
-                    <button class="btn btn-success me-2"><i class="fa-solid fa-file-export"></i> ส่งออก Excel</button>
+                    <a id="export-btn" class="btn btn-success me-2">
+                        <i class="fa-solid fa-file-export"></i> ส่งออก Excel
+                    </a>
                     <!-- ปุ่มนำเข้า -->
                     <form action="import_parcels.php" method="POST" enctype="multipart/form-data" id="import-form"
                         style="display: inline;">
@@ -224,12 +229,14 @@ if ($userResult && $userResult->num_rows > 0) {
                             <td class="text-left"><?= htmlspecialchars($row['item_name']) ?></td>
                             <td><?= htmlspecialchars($row['user_license']) ?></td>
                             <td><?= htmlspecialchars($row['usage_duration']) ?></td>
-                            <td><?= htmlspecialchars($row['price']) ?></td>
-                            <td><?= htmlspecialchars($row['budget_year']) ?></td>
-                            <td><?= htmlspecialchars($row['start_date']) ?></td>
-                            <td><?= htmlspecialchars($row['end_date']) ?></td>
-                            <td><?= htmlspecialchars($row['user_responsible']) ?></td>
-                            <td><?= htmlspecialchars($row['note']) ?></td>
+                            <td style="white-space: nowrap;"><?= htmlspecialchars($row['price']) ?></td>
+                            <td style="white-space: nowrap;"><?= htmlspecialchars($row['budget_year']) ?></td>
+                            <td style="white-space: nowrap;"><?= (new DateTime($row['start_date']))->format('d-m-Y') ?>
+                            </td>
+                            <td style="white-space: nowrap;"><?= (new DateTime($row['end_date']))->format('d-m-Y') ?>
+                            </td>
+                            <td style="white-space: nowrap;"><?= htmlspecialchars($row['user_responsible']) ?></td>
+                            <td><?= htmlspecialchars($row['note']) ?: '-' ?></td>
                             <td class="btn-edit-delete">
                                 <button class="btn btn-sm btn-warning btn-edit" data-bs-toggle="modal"
                                     data-bs-target="#editModal" data-id="<?= $row['id'] ?>"
@@ -273,7 +280,7 @@ if ($userResult && $userResult->num_rows > 0) {
                 </div>
                 <div class="modal-body">
                     <form action="add_parcel.php" method="POST">
-                        <div class="row g-3">
+                        <div class="row g-3" style="margin-bottom: 20px;">
                             <div class="col-md-6">
                                 <label class="form-label">ชื่อ</label>
                                 <input type="text" name="item_name" class="form-control" required />
@@ -474,6 +481,7 @@ if ($userResult && $userResult->num_rows > 0) {
             modal.show();
             setTimeout(() => {
                 modal.hide();
+                window.history.replaceState({}, document.title, window.location.pathname);
             }, 2500);
         }
 
@@ -495,11 +503,23 @@ if ($userResult && $userResult->num_rows > 0) {
 
         $("#search-input").on("keyup", function() {
             clearTimeout(typingTimer);
-            const query = $(this).val();
+            const searchValue = $(this).val().trim();
+            const params = new URLSearchParams(window.location.search);
 
+            // อัปเดต URL query ทันทีที่พิมพ์
+            if (searchValue !== "") {
+                params.set("search", searchValue);
+            } else {
+                params.delete("search");
+            }
+
+            const newUrl = window.location.pathname + "?" + params.toString();
+            window.history.replaceState({}, "", newUrl);
+
+            // เรียก AJAX หลังจากพิมพ์เสร็จ
             typingTimer = setTimeout(function() {
                 $.get("search_parcels.php", {
-                    search: query
+                    search: searchValue
                 }, function(data) {
                     $("#parcel-table-body").html(data);
                 });
@@ -525,6 +545,11 @@ if ($userResult && $userResult->num_rows > 0) {
     $(document).on("click", ".btn-delete", function() {
         const id = $(this).data("id");
         $("#delete-id").val(id);
+    });
+
+    document.getElementById("export-btn").addEventListener("click", function() {
+        const params = new URLSearchParams(window.location.search);
+        window.location.href = "export_parcels.php?" + params.toString();
     });
     </script>
 
