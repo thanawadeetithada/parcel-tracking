@@ -49,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
             $mail->Body = "กดลิงค์เพื่อตั้งรหัสผ่านใหม่: <a href='$resetLink'>$resetLink</a>";
         
             $mail->send();
-            echo "<script>alert('ลิงค์รีเซ็ตส่งไปที่อีเมล์ของคุณแล้ว'); window.location.href = 'index.php';</script>";
+            header("Location: index.php?reset_sent=1");
+            exit();
         } catch (Exception $e) {
             echo "Failed to send email. Error: {$mail->ErrorInfo}";
         }        

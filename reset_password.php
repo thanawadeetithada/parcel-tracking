@@ -4,7 +4,7 @@ require 'db.php';
 date_default_timezone_set('Asia/Bangkok');
 
 if (!isset($_GET['token']) || empty($_GET['token'])) {
-    echo "<script>alert('Invalid token!'); window.location.href = 'index.php';</script>";
+    header("Location: reset_password.php?error=invalid_token");
     exit;
 }
 
@@ -17,13 +17,22 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    echo "<script>alert('Token is invalid or expired!'); window.location.href = 'index.php';</script>";
+    header("Location: index.php?error=expired");
     exit;
 }
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-<style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เปลี่ยนรหัสผ่าน</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
     body {
         font-family: 'Prompt', sans-serif;
         display: flex;
@@ -31,6 +40,7 @@ if ($result->num_rows === 0) {
         align-items: center;
         height: 100vh;
         margin: 0;
+        background-color: #d6d6d6;
     }
 
     .container {
@@ -68,7 +78,7 @@ if ($result->num_rows === 0) {
     button {
         width: 50%;
         padding: 12px;
-        background: #8c99bc;
+        background: #007bff;
         color: white;
         border: none;
         border-radius: 8px;
@@ -77,17 +87,9 @@ if ($result->num_rows === 0) {
         transition: background 0.3s;
         margin-top: 15px;
     }
-</style>
+    </style>
 </head>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เปลี่ยนรหัสผ่าน</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
 <body>
     <div class="container">
         <h2>เปลี่ยนรหัสผ่าน</h2>
@@ -104,5 +106,73 @@ if ($result->num_rows === 0) {
             <button type="submit">เปลี่ยนรหัสผ่าน</button>
         </form>
     </div>
+
+    <div class="modal fade" id="passwordNotMatchModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal">
+                <div class="modal-header">
+                    <h5 class="modal-title mx-auto">แจ้งเตือน</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <h5>รหัสผ่านไม่ตรงกัน</h5>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">ตกลง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="invalidTokenModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal">
+                <div class="modal-header">
+                    <h5 class="modal-title mx-auto">แจ้งเตือน</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <h5>ลิงก์ไม่ถูกต้องหรือหมดอายุ</h5>
+                    <button type="button" class="btn btn-primary"
+                        onclick="window.location.href='index.php'">ตกลง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+    $('form').on('submit', function() {
+        $(this).find('button[type="submit"]').prop('disabled', true).text('กำลังดำเนินการ...');
+    });
+
+    $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const url = new URL(window.location.href);
+        console.log("data", urlParams.get('error'));
+
+        if (urlParams.get('error') === 'notmatch') {
+            $('#passwordNotMatchModal').modal('show');
+            $('#passwordNotMatchModal').on('hidden.bs.modal', function() {
+                clearQueryString();
+            });
+        }
+
+        if (urlParams.get('error') === 'invalid_token') {
+            $('#invalidTokenModal').modal('show');
+             $('#invalidTokenModal').on('hidden.bs.modal', function() {
+                clearQueryString();
+            });
+        }
+
+
+        function clearQueryString() {
+            if (window.history.replaceState) {
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location
+                    .pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        }
+    });
+    </script>
 </body>
+
 </html>

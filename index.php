@@ -177,8 +177,8 @@ $conn->close();
                 <div class="modal-body px-4">
                     <form id="forgotPasswordForm" method="POST" action="process_forgot_password.php">
                         <div class="form-group">
-                            <input type="email" name="email" class="form-control rounded-pill"
-                                placeholder="กรุณาใส่อีเมล" required autocomplete="off">
+                            <input type="email" name="email" class="form-control" placeholder="กรุณาใส่อีเมล" required
+                                autocomplete="off">
                         </div>
                         <div class="modal-btn">
                             <button type="submit" class="btn btn-primary">ตกลง</button>
@@ -189,9 +189,106 @@ $conn->close();
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="resetLinkSentModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal">
+                <div class="modal-header">
+                    <h5 class="modal-title mx-auto">ส่งลิงก์สำเร็จ</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <h5>ลิงก์สำหรับรีเซ็ตรหัสผ่านถูกส่งไปที่อีเมลของคุณแล้ว</h5>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">ตกลง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="resetPasswordSuccessModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal">
+                <div class="modal-header">
+                    <h5 class="modal-title mx-auto">สำเร็จ</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <h5>เปลี่ยนรหัสผ่านเรียบร้อยแล้ว</h5>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">ตกลง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ❌ ลิงก์หมดอายุ Modal -->
+    <div class="modal fade" id="expiredTokenModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal">
+                <div class="modal-header">
+                    <h5 class="modal-title mx-auto">ลิงก์หมดอายุ</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <h5>ลิงก์สำหรับเปลี่ยนรหัสผ่านนี้หมดอายุแล้ว</h5>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">ตกลง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="passwordNotMatchModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal">
+                <div class="modal-header">
+                    <h5 class="modal-title mx-auto">รหัสผ่านไม่ถูกต้อง</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <h5>รหัสผ่านไม่ตรงกัน</h5>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">ตกลง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const url = new URL(window.location.href);
 
+        if (urlParams.get('reset_sent') === '1') {
+            $('#resetLinkSentModal').modal('show');
+
+            $('#resetLinkSentModal').on('hidden.bs.modal', function() {
+                clearQueryString();
+            });
+        }
+
+        if (urlParams.get('reset_success') === '1') {
+            $('#resetPasswordSuccessModal').modal('show');
+
+            $('#resetPasswordSuccessModal').on('hidden.bs.modal', function() {
+                clearQueryString();
+            });
+        }
+
+        if (urlParams.get('error') === 'expired') {
+            $('#expiredTokenModal').modal('show');
+
+            $('#expiredTokenModal').on('hidden.bs.modal', function() {
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window
+                    .location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            });
+        }  
+
+        function clearQueryString() {
+            if (window.history.replaceState) {
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location
+                    .pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+        }
+    });
+    </script>
 
 </body>
 

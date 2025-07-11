@@ -23,12 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token'], $_POST['pass
             $stmt->bind_param("ss", $hashed_password, $token);
             $stmt->execute();
 
-            echo "<script>alert('เปลี่ยนรหัสผ่านสำเร็จ!'); window.location.href = 'index.php';</script>";
-        } else {
-            echo "<script>alert('ลิงค์นี้หมดอายุแล้ว'); window.history.back();</script>";
-        }
+        header("Location: index.php?reset_success=1");
+        exit();        
     } else {
-        echo "<script>alert('รหัสผ่านไม่ตรงกัน'); window.history.back();</script>";
+        header("Location: reset_password.php?error=expired&token=$token");
+        exit();        }
+    } else {
+       header("Location: reset_password.php?error=notmatch&token=$token");
+        exit();
     }
 }
 ?>
