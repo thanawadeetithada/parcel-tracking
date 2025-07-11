@@ -30,7 +30,7 @@ $sqlNew = "SELECT COUNT(*) as new_count FROM parcels WHERE DATE(created_at) = '$
 $newResult = $conn->query($sqlNew)->fetch_assoc()['new_count'];
 
 $today = date('Y-m-d');
-$next3Days = date('Y-m-d', strtotime('+3 days'));
+$next3Days = date('Y-m-d', strtotime('+30 days'));
 $sqlExpiring = "SELECT COUNT(*) as expiring FROM parcels WHERE end_date BETWEEN '$today' AND '$next3Days'";
 $expiringResult = $conn->query($sqlExpiring)->fetch_assoc()['expiring'];
 
@@ -159,11 +159,14 @@ while ($row = $result->fetch_assoc()) {
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="summary-card" style="background-color: #ffe4cc;">
-                    <h4>รายการใกล้หมดอายุ</h4>
-                    <div class="number text-danger"><?= $expiringResult ?></div>
-                </div>
+                <a href="expiring_result.php" style="text-decoration: none;">
+                    <div class="summary-card" style="background-color: #ffe4cc;">
+                        <h4 class="text-dark">รายการใกล้หมดอายุ</h4>
+                        <div class="number text-danger"><?= $expiringResult ?></div>
+                    </div>
+                </a>
             </div>
+
             <div class="col-md-4">
                 <div class="summary-card" style="background-color: #e3ffe3;">
                     <h4>รายการเข้าใหม่</h4>

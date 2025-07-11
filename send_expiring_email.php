@@ -9,7 +9,7 @@ use PHPMailer\PHPMailer\Exception;
 
 // ดึงรายการพัสดุที่ใกล้หมดอายุใน 3 วัน
 $today = date('Y-m-d');
-$next3Days = date('Y-m-d', strtotime('+3 days'));
+$next3Days = date('Y-m-d', strtotime('+30 days'));
 $sql = "SELECT * FROM parcels WHERE end_date BETWEEN '$today' AND '$next3Days'";
 $result = $conn->query($sql);
 

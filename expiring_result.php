@@ -15,7 +15,10 @@ $searchSql = $conn->real_escape_string($search);
 $startDateSql = $conn->real_escape_string($startDate);
 $endDateSql = $conn->real_escape_string($endDate);
 
-$sql = "SELECT * FROM parcels WHERE 1=1";
+$today = date('Y-m-d');
+$next3Days = date('Y-m-d', strtotime('+30 days'));
+
+$sql = "SELECT * FROM parcels WHERE end_date BETWEEN '$today' AND '$next3Days'";
 
 if (!empty($searchSql)) {
     $sql .= " AND item_name LIKE '%$searchSql%'";
@@ -55,7 +58,7 @@ while ($row = $emailResult->fetch_assoc()) {
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>จัดการพัสดุ</title>
+    <title>รายการใกล้หมดอายุ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -84,6 +87,7 @@ while ($row = $emailResult->fetch_assoc()) {
     .btn-edit-delete {
         display: flex;
         justify-content: center;
+
         .btn-edit {
             margin-right: 5px;
         }
@@ -128,7 +132,7 @@ while ($row = $emailResult->fetch_assoc()) {
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #004085; padding-left: 2rem;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="parcel_management.php">จัดการพัสดุ</a>
+            <a class="navbar-brand" href="expiring_result.php">รายการใกล้หมดอายุ</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -142,7 +146,7 @@ while ($row = $emailResult->fetch_assoc()) {
                     </li>
                     <?php endif; ?>
                     <li class="nav-item">
-                        <a class="nav-link active" href="parcel_management.php">จัดการพัสดุ</a>
+                        <a class="nav-link" href="parcel_management.php">จัดการพัสดุ</a>
                     </li>
                     <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                     <li class="nav-item">
@@ -160,43 +164,8 @@ while ($row = $emailResult->fetch_assoc()) {
     </nav>
     <div class="card">
         <div class="container py-1">
-            <h3><i class="fa-solid fa-box"></i> ระบบจัดการพัสดุ</h3><br>
-            <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
-            <div class="mb-3">
-                <div class="row">
-                    <div
-                        class="col-12 d-flex flex-wrap align-items-end gap-2 flex-column flex-md-row justify-content-md-end">
-                        <div class="d-flex flex-wrap gap-2">
-                            <button type="button" class="btn btn-warning" data-bs-toggle="modal"
-                                data-bs-target="#emailModal">
-                                <i class="fa-solid fa-envelope"></i> ส่ง Email แจ้งเตือน
-                            </button>
+            <h3><i class="fa-solid fa-box"></i> รายการใกล้หมดอายุ</h3><br>
 
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
-                                <i class="fa-solid fa-plus"></i> เพิ่มพัสดุ
-                            </button>
-                        </div>
-
-                        <!-- บรรทัดใหม่ -->
-                        <div class="d-flex flex-wrap gap-2 mt-2">
-                            <a id="export-btn" class="btn btn-success">
-                                <i class="fa-solid fa-file-export"></i> ส่งออก Excel
-                            </a>
-
-                            <form action="import_parcels.php" method="POST" enctype="multipart/form-data"
-                                id="import-form" style="display: inline;">
-                                <input type="file" name="excel_file" id="excel-file" accept=".xlsx"
-                                    style="display: none;" onchange="document.getElementById('import-form').submit();">
-                                <button type="button" class="btn btn-secondary"
-                                    onclick="document.getElementById('excel-file').click();">
-                                    <i class="fa-solid fa-file-import"></i> นำเข้า Excel
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
             <!-- ฟิลเตอร์ -->
             <div class="row g-3 mb-4">
                 <!-- ฟิลเตอร์ -->
@@ -225,23 +194,13 @@ while ($row = $emailResult->fetch_assoc()) {
                     </div>
 
                     <div class="col-md-1 d-grid" style="white-space: nowrap;">
-                        <a href="parcel_management.php" class="btn btn-outline-secondary">
+                        <a href="expiring_result.php" class="btn btn-outline-secondary">
                             <i class="fa-solid fa-rotate-left"></i> ล้างข้อมูล
                         </a>
                     </div>
                 </form>
 
             </div>
-
-            <!-- แจ้งเตือน -->
-            <?php if ($expiringCount > 0): ?>
-            <div class="alert alert-warning d-flex align-items-center" role="alert">
-                <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                <div>
-                    พบพัสดุ <?= $expiringCount ?> รายการใกล้หมดอายุ
-                </div>
-            </div>
-            <?php endif; ?>
 
             <!-- ตาราง -->
             <div class="table-responsive table-rounded shadow-sm">
@@ -631,7 +590,7 @@ while ($row = $emailResult->fetch_assoc()) {
 
             // เรียก AJAX หลังจากพิมพ์เสร็จ
             typingTimer = setTimeout(function() {
-                $.get("search_parcels.php", {
+                $.get("search_expire_parcels.php", {
                     search: searchValue
                 }, function(data) {
                     $("#parcel-table-body").html(data);
