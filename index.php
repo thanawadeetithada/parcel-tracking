@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") { // ตรวจสอบหากเ
                 $_SESSION['fullname'] = $user['fullname']; 
                 
                 if ($user['userrole'] === 'user') {
-                    header("Location: parcel_management.php");
+                    header("Location: parcel_management_user.php");
                 } else {
                     header("Location: dashboard.php");
                 }

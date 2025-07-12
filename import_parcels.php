@@ -25,16 +25,29 @@ if (isset($_FILES['excel_file']) && $_FILES['excel_file']['error'] === 0) {
             $endDate   = date('Y-m-d', strtotime($row[6]));
             $user_responsible = $row[7];
             $note = !empty($row[8]) ? $row[8] : '-';
-
+            $statusInput = trim($row[9]);
+            switch ($statusInput) {
+                case 'อนุมัติ':
+                    $status = 'approved';
+                    break;
+                case 'รออนุมัติ':
+                    $status = 'pending';
+                    break;
+                case 'ไม่อนุมัติ':
+                    $status = 'rejected';
+                    break;
+                default:
+                    $status = 'pending'; // fallback เผื่อว่างหรือสะกดผิด
+            }
             $stmt = $conn->prepare("
                 INSERT INTO parcels (
                     item_name, category, usage_duration, price, budget_year,
-                    start_date, end_date, user_responsible, note
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    start_date, end_date, user_responsible, note, status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
             $stmt->bind_param(
-                "ssidsssss",
+                "ssidssssss",
                 $item_name,
                 $category,
                 $usage_duration,
@@ -43,7 +56,8 @@ if (isset($_FILES['excel_file']) && $_FILES['excel_file']['error'] === 0) {
                 $startDate,
                 $endDate,
                 $user_responsible,
-                $note
+                $note,
+                $status
             );
 
             $stmt->execute();

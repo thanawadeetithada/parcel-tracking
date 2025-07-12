@@ -1,35 +1,46 @@
 <?php
+session_start();
 require_once 'db.php';
+require 'vendor/autoload.php';
 
-require 'vendor/autoload.php'; // PhpSpreadsheet
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-$search = $_GET['search'] ?? '';
-$startDate = $_GET['start_date'] ?? '';
-$endDate = $_GET['end_date'] ?? '';
+$fullname = $_SESSION['fullname'] ?? null;
+if (!$fullname) {
+    die("ไม่ได้เข้าสู่ระบบ");
+}
 
-$searchSql = $conn->real_escape_string($search);
-$startDateSql = $conn->real_escape_string($startDate);
-$endDateSql = $conn->real_escape_string($endDate);
+$search       = $_GET['search'] ?? '';
+$startDate    = $_GET['start_date'] ?? '';
+$endDate      = $_GET['end_date'] ?? '';
+$statusFilter = $_GET['status'] ?? '';
 
-$sql = "SELECT * FROM parcels WHERE 1=1";
+$searchSql     = $conn->real_escape_string($search);
+$startDateSql  = $conn->real_escape_string($startDate);
+$endDateSql    = $conn->real_escape_string($endDate);
+$fullnameSql   = $conn->real_escape_string($fullname);
+$statusSql     = $conn->real_escape_string($statusFilter);
+
+$sql = "SELECT * FROM parcels WHERE user_responsible = '$fullnameSql'";
 
 if (!empty($searchSql)) {
     $sql .= " AND item_name LIKE '%$searchSql%'";
 }
-
 if (!empty($startDateSql)) {
     $sql .= " AND start_date >= '$startDateSql'";
 }
-
 if (!empty($endDateSql)) {
     $sql .= " AND end_date <= '$endDateSql'";
+}
+if (!empty($statusSql)) {
+    $sql .= " AND status = '$statusSql'";
 }
 
 $sql .= " ORDER BY id DESC";
 $result = $conn->query($sql);
 
+// สร้างไฟล์ Excel
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 
@@ -41,22 +52,13 @@ $sheet->fromArray([
 
 $rowIndex = 2;
 while ($row = $result->fetch_assoc()) {
-    // แปลงสถานะ
     switch ($row['status']) {
-        case 'approved':
-            $statusText = 'อนุมัติ';
-            break;
-        case 'pending':
-            $statusText = 'รออนุมัติ';
-            break;
-        case 'rejected':
-            $statusText = 'ไม่อนุมัติ';
-            break;
-        default:
-            $statusText = $row['status'];
+        case 'approved': $statusText = 'อนุมัติ'; break;
+        case 'pending':  $statusText = 'รออนุมัติ'; break;
+        case 'rejected': $statusText = 'ไม่อนุมัติ'; break;
+        default:         $statusText = $row['status'];
     }
 
-    // ใส่ข้อมูลแถว
     $sheet->fromArray([
         $row['item_name'],
         $row['category'],
@@ -68,8 +70,7 @@ while ($row = $result->fetch_assoc()) {
         $row['user_responsible'],
         $row['note'] ?: '-',
         $statusText
-    ], NULL, 'A' . $rowIndex);
-    $rowIndex++;
+    ], NULL, 'A' . $rowIndex++);
 }
 
 // Output

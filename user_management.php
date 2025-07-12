@@ -65,27 +65,33 @@ $stmt->close();
         min-height: 100vh;
 
     }
+
     .modal-content {
         width: 100%;
         max-width: 500px;
     }
+
     .header-card {
         display: flex;
         justify-content: center;
     }
+
     .form-control modal-text {
         height: fit-content;
         width: 50%;
     }
+
     .table td:nth-child(9) {
         text-align: center;
         vertical-align: middle;
     }
+
     .btn-action {
         display: flex;
         justify-content: center;
         align-items: center;
     }
+
     .modal-text {
         width: 100%;
     }
@@ -103,6 +109,7 @@ $stmt->close();
         border-radius: 12px;
         border: 1px solid #dee2e6;
     }
+
     tbody td:first-child,
     th:first-child {
         padding-left: 15px;
@@ -117,7 +124,7 @@ $stmt->close();
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #004085; padding-left: 2rem;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="dashboard.php">จัดการผู้ใช้งาน</a>
+            <a class="navbar-brand" href="user_management.php">จัดการผู้ใช้งาน</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -125,15 +132,23 @@ $stmt->close();
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="dashboard.php">ระบบจัดการพัสดุในหน่วยงาน</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="parcel_management.php">จัดการพัสดุ</a>
                     </li>
-                    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="parcel_approve.php">ขออนุมัติ</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="user_management.php">จัดการผู้ใช้งาน</a>
+                    </li>
+                    <?php endif; ?>
+                    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'user')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="parcel_management_user.php">จัดการพัสดุ</a>
                     </li>
                     <?php endif; ?>
                     <li class="nav-item">

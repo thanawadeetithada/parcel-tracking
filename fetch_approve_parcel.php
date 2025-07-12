@@ -17,7 +17,7 @@ $stmt = $conn->prepare("UPDATE parcels SET item_name=?, category=?, usage_durati
 $stmt->bind_param("ssidssssssi", $item_name, $category, $usage_duration, $price, $budget_year, $start_date, $end_date, $user_responsible, $note, $status, $id);
 
 if ($stmt->execute()) {
-    header("Location: parcel_management.php");
+    header("Location: parcel_approve.php");
 } else {
     echo "เกิดข้อผิดพลาดในการอัปเดต: " . $conn->error;
 }

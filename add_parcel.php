@@ -16,15 +16,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $end_date = fixDateFormat($_POST['end_date']);
     $user_responsible = $_POST['user_responsible'];
     $note = $_POST['note'];
+    $status = $_POST['status'];
+
 
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date)) {
         die("รูปแบบวันที่ไม่ถูกต้อง: $start_date");
     }
 
     $stmt = $conn->prepare("INSERT INTO parcels 
-        (item_name, category, usage_duration, price, budget_year, start_date, end_date, user_responsible, note) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssdissss", $item_name, $category, $usage_duration, $price, $budget_year, $start_date, $end_date, $user_responsible, $note);
+        (item_name, category, usage_duration, price, budget_year, start_date, end_date, user_responsible, note, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssdisssss", $item_name, $category, $usage_duration, $price, $budget_year, $start_date, $end_date, $user_responsible, $note, $status);
 
     if ($stmt->execute()) {
         header("Location: parcel_management.php?success=1");

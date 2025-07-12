@@ -1,55 +1,58 @@
 <?php
-session_start();
-require_once 'db.php';
+    session_start();
+    require_once 'db.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: index.php");
-    exit();
-}
-
-$search = $_GET['search'] ?? '';
-$startDate = $_GET['start_date'] ?? '';
-$endDate = $_GET['end_date'] ?? '';
-
-$searchSql = $conn->real_escape_string($search);
-$startDateSql = $conn->real_escape_string($startDate);
-$endDateSql = $conn->real_escape_string($endDate);
-
-$sql = "SELECT * FROM parcels WHERE status = 'approved'";
-
-if (!empty($searchSql)) {
-    $sql .= " AND item_name LIKE '%$searchSql%'";
-}
-
-if (!empty($startDateSql)) {
-    $sql .= " AND start_date >= '$startDateSql'";
-}
-if (!empty($endDateSql)) {
-    $sql .= " AND end_date <= '$endDateSql'";
-}
-
-$sql .= " ORDER BY id DESC";
-$result = $conn->query($sql);
-
-$userOptions = [];
-$userResult = $conn->query("SELECT fullname FROM users ORDER BY fullname ASC");
-if ($userResult && $userResult->num_rows > 0) {
-    while ($row = $userResult->fetch_assoc()) {
-        $userOptions[] = $row['fullname'];
+    if (! isset($_SESSION['user_id'])) {
+        header("Location: index.php");
+        exit();
     }
-}
 
-$today = date('Y-m-d');
-$next3Days = date('Y-m-d', strtotime('+30 days'));
-$sqlExpiringCount = "SELECT COUNT(*) as count FROM parcels WHERE status = 'approved' AND end_date BETWEEN '$today' AND '$next3Days'";
+    $search    = $_GET['search'] ?? '';
+    $startDate = $_GET['start_date'] ?? '';
+    $endDate   = $_GET['end_date'] ?? '';
+    $statusFilter = $_GET['status'] ?? '';
 
-$expiringCount = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
+    $searchSql    = $conn->real_escape_string($search);
+    $startDateSql = $conn->real_escape_string($startDate);
+    $endDateSql   = $conn->real_escape_string($endDate);
 
-$emailOptions = [];
-$emailResult = $conn->query("SELECT email FROM users WHERE email IS NOT NULL AND email != '' ORDER BY email ASC");
-while ($row = $emailResult->fetch_assoc()) {
-    $emailOptions[] = $row['email'];
-}
+    $sql = "SELECT * FROM parcels WHERE 1=1";
+
+    if (! empty($statusFilter)) {
+        $sql .= " AND status = '$statusFilter'";
+    }
+
+    if (! empty($searchSql)) {
+        $sql .= " AND item_name LIKE '%$searchSql%'";
+    }
+    if (! empty($startDateSql)) {
+        $sql .= " AND start_date >= '$startDateSql'";
+    }
+    if (! empty($endDateSql)) {
+        $sql .= " AND end_date <= '$endDateSql'";
+    }
+
+    $sql .= " ORDER BY id DESC";
+    $result = $conn->query($sql);
+
+    $userOptions = [];
+    $userResult  = $conn->query("SELECT fullname FROM users ORDER BY fullname ASC");
+    if ($userResult && $userResult->num_rows > 0) {
+        while ($row = $userResult->fetch_assoc()) {
+            $userOptions[] = $row['fullname'];
+        }
+    }
+
+    $today            = date('Y-m-d');
+    $next3Days        = date('Y-m-d', strtotime('+30 days'));
+    $sqlExpiringCount = "SELECT COUNT(*) as count FROM parcels WHERE end_date BETWEEN '$today' AND '$next3Days'";
+    $expiringCount    = $conn->query($sqlExpiringCount)->fetch_assoc()['count'];
+
+    $emailOptions = [];
+    $emailResult  = $conn->query("SELECT email FROM users WHERE email IS NOT NULL AND email != '' ORDER BY email ASC");
+    while ($row = $emailResult->fetch_assoc()) {
+        $emailOptions[] = $row['email'];
+    }
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -57,7 +60,7 @@ while ($row = $emailResult->fetch_assoc()) {
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>จัดการพัสดุ</title>
+    <title>ขออนุมัติ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -131,7 +134,7 @@ while ($row = $emailResult->fetch_assoc()) {
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #004085; padding-left: 2rem;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="parcel_management.php">จัดการพัสดุ</a>
+            <a class="navbar-brand" href="parcel_approve.php">ขออนุมัติ</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -144,10 +147,10 @@ while ($row = $emailResult->fetch_assoc()) {
                         <a class="nav-link" href="dashboard.php">ระบบจัดการพัสดุในหน่วยงาน</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="parcel_management.php">จัดการพัสดุ</a>
+                        <a class="nav-link" href="parcel_management.php">จัดการพัสดุ</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="parcel_approve.php">ขออนุมัติ</a>
+                        <a class="nav-link active" href="parcel_approve.php">ขออนุมัติ</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="user_management.php">จัดการผู้ใช้งาน</a>
@@ -170,87 +173,75 @@ while ($row = $emailResult->fetch_assoc()) {
     <div class="card">
         <div class="container py-1">
             <h3><i class="fa-solid fa-box"></i> ระบบจัดการพัสดุ</h3><br>
-            <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
             <div class="mb-3">
                 <div class="row">
                     <div
                         class="col-12 d-flex flex-wrap align-items-end gap-2 flex-column flex-md-row justify-content-md-end">
-                        <div class="d-flex flex-wrap gap-2">
+                        <!-- <div class="d-flex flex-wrap gap-2">
                             <button type="button" class="btn btn-warning" data-bs-toggle="modal"
                                 data-bs-target="#emailModal">
                                 <i class="fa-solid fa-envelope"></i> ส่ง Email แจ้งเตือน
                             </button>
-
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
-                                <i class="fa-solid fa-plus"></i> เพิ่มพัสดุ
-                            </button>
-                        </div>
+                        </div> -->
 
                         <!-- บรรทัดใหม่ -->
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <a id="export-btn" class="btn btn-success">
                                 <i class="fa-solid fa-file-export"></i> ส่งออก Excel
                             </a>
-
-                            <form action="import_parcels.php" method="POST" enctype="multipart/form-data"
-                                id="import-form" style="display: inline;">
-                                <input type="file" name="excel_file" id="excel-file" accept=".xlsx"
-                                    style="display: none;" onchange="document.getElementById('import-form').submit();">
-                                <button type="button" class="btn btn-secondary"
-                                    onclick="document.getElementById('excel-file').click();">
-                                    <i class="fa-solid fa-file-import"></i> นำเข้า Excel
-                                </button>
-                            </form>
                         </div>
                     </div>
                 </div>
             </div>
-            <?php endif; ?>
+
             <!-- ฟิลเตอร์ -->
-            <br>
             <div class="row g-3 mb-4">
                 <!-- ฟิลเตอร์ -->
-                <form method="GET" id="search-form"
-                    class="d-flex flex-wrap justify-content-center align-items-end gap-3 mb-4">
+                <form method="GET" id="search-form">
+                    <div class="d-flex flex-wrap align-items-end justify-content-center gap-3">
+                        <div class="form-group">
+                            <label for="search-input" class="form-label">ค้นหาชื่อพัสดุ</label>
+                            <input type="text" name="search" id="search-input" class="form-control"
+                                value="<?php echo htmlspecialchars($_GET['search'] ?? '')?>" />
+                        </div>
 
-                    <div class="form-group">
-                        <label for="search" class="form-label">ค้นหาชื่อพัสดุ</label>
-                        <input type="text" name="search" id="search-input" class="form-control"
-                            value="<?= htmlspecialchars($_GET['search'] ?? '') ?>" />
-                    </div>
+                        <div class="form-group">
+                            <label for="start-date" class="form-label">วันที่เริ่มต้นใช้งาน</label>
+                            <input type="date" name="start_date" id="start-date" class="form-control"
+                                value="<?php echo htmlspecialchars($_GET['start_date'] ?? '')?>" />
+                        </div>
 
-                    <div class="form-group">
-                        <label for="start-date" class="form-label">วันที่เริ่มต้นใช้งาน</label>
-                        <input type="date" name="start_date" id="start-date" class="form-control"
-                            value="<?= htmlspecialchars($_GET['start_date'] ?? '') ?>" />
-                    </div>
+                        <div class="form-group">
+                            <label for="end-date" class="form-label">วันที่สิ้นสุดใช้งาน</label>
+                            <input type="date" name="end_date" id="end-date" class="form-control"
+                                value="<?php echo htmlspecialchars($_GET['end_date'] ?? '')?>" />
+                        </div>
 
-                    <div class="form-group">
-                        <label for="end-date" class="form-label">วันที่สิ้นสุดใช้งาน</label>
-                        <input type="date" name="end_date" id="end-date" class="form-control"
-                            value="<?= htmlspecialchars($_GET['end_date'] ?? '') ?>" />
-                    </div>
+                        <div class="form-group">
+                            <label for="dropdown-request" class="form-label">สถานะ</label>
+                            <select name="status" id="dropdown-request" class="form-select">
+                                <option value="">ทั้งหมด</option>
+                                <option value="approved" <?= $statusFilter == 'approved' ? 'selected' : '' ?>>อนุมัติ
+                                </option>
+                                <option value="pending" <?= $statusFilter == 'pending' ? 'selected' : '' ?>>รออนุมัติ
+                                </option>
+                                <option value="rejected" <?= $statusFilter == 'rejected' ? 'selected' : '' ?>>ไม่อนุมัติ
+                                </option>
+                            </select>
+                        </div>
 
-                    <div class="form-group d-flex gap-2 align-items-end">
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="fa-solid fa-filter"></i> ค้นหา
-                        </button>
-                        <a href="parcel_management.php" class="btn btn-outline-secondary">
-                            <i class="fa-solid fa-rotate-left"></i> ล้างข้อมูล
-                        </a>
+                        <div class="form-group d-flex gap-2">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fa-solid fa-filter"></i> ค้นหา
+                            </button>
+                            <a href="parcel_approve.php" class="btn btn-outline-secondary">
+                                <i class="fa-solid fa-rotate-left"></i> ล้างข้อมูล
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>
 
-            <!-- แจ้งเตือน -->
-            <?php if ($expiringCount > 0): ?>
-            <div class="alert alert-warning d-flex align-items-center" role="alert">
-                <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                <div>
-                    พบพัสดุ <?= $expiringCount ?> รายการใกล้หมดอายุ
-                </div>
-            </div>
-            <?php endif; ?>
 
             <!-- ตาราง -->
             <div class="table-responsive table-rounded shadow-sm">
@@ -267,6 +258,7 @@ while ($row = $emailResult->fetch_assoc()) {
                             <th>สิ้นสุดการใช้งาน</th>
                             <th>ผู้ใช้งาน</th>
                             <th>หมายเหตุ</th>
+                            <th>สถานะ</th>
                             <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                             <th>จัดการ</th>
                             <?php endif; ?>
@@ -274,37 +266,71 @@ while ($row = $emailResult->fetch_assoc()) {
                     </thead>
                     <tbody id="parcel-table-body">
                         <?php if ($result->num_rows > 0): ?>
-                        <?php $i = 1; while($row = $result->fetch_assoc()): ?>
+                        <?php $i = 1;while ($row = $result->fetch_assoc()): ?>
                         <tr class="text-center">
-                            <td><?= $i++ ?></td>
-                            <td class="text-left"><?= htmlspecialchars($row['item_name']) ?></td>
-                            <td><?= htmlspecialchars($row['category']) ?></td>
-                            <td><?= htmlspecialchars($row['usage_duration']) ?></td>
-                            <td style="white-space: nowrap;"><?= htmlspecialchars($row['price']) ?></td>
-                            <td style="white-space: nowrap;"><?= htmlspecialchars($row['budget_year']) ?></td>
-                            <td style="white-space: nowrap;"><?= (new DateTime($row['start_date']))->format('d-m-Y') ?>
+                            <td><?php echo $i++?></td>
+                            <td class="text-left"><?php echo htmlspecialchars($row['item_name'])?></td>
+                            <td><?php echo htmlspecialchars($row['category'])?></td>
+                            <td><?php echo htmlspecialchars($row['usage_duration'])?></td>
+                            <td style="white-space: nowrap;"><?php echo htmlspecialchars($row['price'])?></td>
+                            <td style="white-space: nowrap;"><?php echo htmlspecialchars($row['budget_year'])?></td>
+                            <td style="white-space: nowrap;">
+                                <?php echo (new DateTime($row['start_date']))->format('d-m-Y')?>
                             </td>
-                            <td style="white-space: nowrap;"><?= (new DateTime($row['end_date']))->format('d-m-Y') ?>
+                            <td style="white-space: nowrap;">
+                                <?php echo (new DateTime($row['end_date']))->format('d-m-Y')?>
                             </td>
-                            <td style="white-space: nowrap;"><?= htmlspecialchars($row['user_responsible']) ?></td>
-                            <td><?= htmlspecialchars($row['note']) ?: '-' ?></td>
+                            <td style="white-space: nowrap;"><?php echo htmlspecialchars($row['user_responsible'])?>
+                            </td>
+
+                            <td><?php echo htmlspecialchars($row['note']) ?: '-'?></td>
+                            <td style="white-space: nowrap;">
+                                <?php
+                                    $statusText  = '';
+                                    $statusClass = '';
+
+                                    switch ($row['status']) {
+                                        case 'approved':
+                                            $statusText  = 'อนุมัติ';
+                                            $statusClass = 'text-success';
+                                            break;
+                                        case 'pending':
+                                            $statusText  = 'รออนุมัติ';
+                                            $statusClass = 'text-warning';
+                                            break;
+                                        case 'rejected':
+                                            $statusText  = 'ไม่อนุมัติ';
+                                            $statusClass = 'text-danger';
+                                            break;
+                                        default:
+                                            $statusText  = htmlspecialchars($row['status']);
+                                            $statusClass = '';
+                                    }
+                                ?>
+                                <span class="<?php echo $statusClass?>"><i
+                                        class="fa-solid fa-circle me-1"></i><?php echo $statusText?></span>
+                            </td>
+
                             <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                             <td class="btn-edit-delete">
                                 <button class="btn btn-sm btn-warning btn-edit" data-bs-toggle="modal"
-                                    data-bs-target="#editModal" data-id="<?= $row['id'] ?>"
-                                    data-item_name="<?= htmlspecialchars($row['item_name']) ?>"
-                                    data-category="<?= $row['category'] ?>"
-                                    data-usage_duration="<?= $row['usage_duration'] ?>"
-                                    data-price="<?= $row['price'] ?>" data-budget_year="<?= $row['budget_year'] ?>"
-                                    data-start_date="<?= $row['start_date'] ?>" data-end_date="<?= $row['end_date'] ?>"
-                                    data-user_responsible="<?= htmlspecialchars($row['user_responsible']) ?>"
-                                    data-note="<?= htmlspecialchars($row['note']) ?>"
-                                    data-status="<?= htmlspecialchars($row['status']) ?>">
+                                    data-bs-target="#editModal" data-id="<?php echo $row['id']?>"
+                                    data-item_name="<?php echo htmlspecialchars($row['item_name'])?>"
+                                    data-category="<?php echo $row['category']?>"
+                                    data-usage_duration="<?php echo $row['usage_duration']?>"
+                                    data-price="<?php echo $row['price']?>"
+                                    data-budget_year="<?php echo $row['budget_year']?>"
+                                    data-start_date="<?php echo $row['start_date']?>"
+                                    data-end_date="<?php echo $row['end_date']?>"
+                                    data-user_responsible="<?php echo htmlspecialchars($row['user_responsible'])?>"
+                                    data-note="<?php echo htmlspecialchars($row['note'])?>"
+                                    data-status="<?= $row['status'] ?>">
+
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
 
                                 <button class="btn btn-sm btn-danger btn-delete" data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal" data-id="<?= $row['id'] ?>">
+                                    data-bs-target="#deleteModal" data-id="<?php echo $row['id']?>">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </td>
@@ -324,88 +350,13 @@ while ($row = $emailResult->fetch_assoc()) {
         </div>
     </div>
 
-    <!-- Modal เพิ่มพัสดุ -->
-    <div class="modal fade" id="addModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fa-solid fa-box"></i> เพิ่มพัสดุใหม่</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="add_parcel.php" method="POST">
-                        <div class="row g-3" style="margin-bottom: 20px;">
-                            <div class="col-md-6">
-                                <label class="form-label">ชื่อ</label>
-                                <input type="text" name="item_name" class="form-control" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">ประเภท</label>
-                                <input type="text" name="category" class="form-control" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">งปม.</label>
-                                <input type="text" name="budget_year" class="form-control" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">ราคา</label>
-                                <input type="number" name="price" class="form-control" required />
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">เริ่มต้นใช้งาน</label>
-                                <input type="date" name="start_date" class="form-control" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">สิ้นสุดการใช้งาน</label>
-                                <input type="date" name="end_date" class="form-control" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">ระยะเวลา</label>
-                                <input type="number" name="usage_duration" class="form-control" required />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">ผู้ใช้งาน</label>
-                                <select name="user_responsible" class="form-select select2-user" required>
-                                    <option value="">-- เลือกผู้ใช้งาน --</option>
-                                    <?php foreach ($userOptions as $user): ?>
-                                    <option value="<?= $user ?>"><?= htmlspecialchars($user) ?></option>
-                                    </option>
-                                    <?php endforeach; ?>
-                                </select>
-
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">หมายเหตุ</label>
-                                <input type="text" name="note" class="form-control" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">อนุมัติการใช้งาน</label>
-                                <select name="status" class="form-select" required>
-                                    <option value="pending">⏳ รออนุมัติ</option>
-                                    <option value="approved">✅ อนุมัติ</option>
-                                    <option value="rejected">❌ ไม่อนุมัติ</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                            <button type="submit" class="btn btn-primary">บันทึก</button>
-                        </div>
-                    </form>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
     <!-- Modal แก้ไขพัสดุ -->
     <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form action="edit_parcel.php" method="POST">
+                <form action="fetch_approve_parcel.php" method="POST">
                     <div class="modal-header">
-                        <h5 class="modal-title"><i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูลพัสดุ</h5>
+                        <h5 class="modal-title"><i class="fa-solid fa-pen-to-square"></i> อนุมัติข้อมูลพัสดุ</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -447,7 +398,7 @@ while ($row = $emailResult->fetch_assoc()) {
                                     class="form-select select2-user" required>
                                     <option value="">-- เลือกผู้ใช้งาน --</option>
                                     <?php foreach ($userOptions as $user): ?>
-                                    <option value="<?= $user ?>"><?= htmlspecialchars($user) ?></option>
+                                    <option value="<?php echo $user?>"><?php echo htmlspecialchars($user)?></option>
                                     </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -479,7 +430,7 @@ while ($row = $emailResult->fetch_assoc()) {
     <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="delete_parcel.php" method="POST">
+                <form action="delete_parcel_approve.php" method="POST">
                     <div class="modal-header">
                         <h5 class="modal-title text-danger"><i class="fa-solid fa-triangle-exclamation"></i> ยืนยันการลบ
                         </h5>
@@ -498,23 +449,6 @@ while ($row = $emailResult->fetch_assoc()) {
         </div>
     </div>
 
-    <!-- Modal แจ้งผลนำเข้าสำเร็จ -->
-    <div class="modal fade" id="importSuccessModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center p-4">
-                <h5 class="mb-3">
-                    <i class="fa-solid fa-circle-check text-success fa-2x"></i>
-                </h5>
-                <p class="mb-3">นำเข้าข้อมูลสำเร็จแล้ว</p>
-                <div>
-                    <button style="width: 30%;" type="button" class="btn btn-success" data-bs-dismiss="modal">
-                        ปิด
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Loading Overlay -->
     <div id="loading-overlay"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(255,255,255,0.7); z-index:9999;">
@@ -525,22 +459,6 @@ while ($row = $emailResult->fetch_assoc()) {
         </div>
     </div>
 
-    <!-- Modal แจ้งผลส่งอีเมลสำเร็จ -->
-    <div class="modal fade" id="emailSuccessModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content text-center p-4">
-                <h5 class="mb-3">
-                    <i class="fa-solid fa-circle-check text-success fa-2x"></i>
-                </h5>
-                <p class="mb-3">ส่งอีเมลแจ้งเตือนพัสดุสำเร็จแล้ว</p>
-                <div>
-                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">ปิด</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal เลือกอีเมล -->
     <div class="modal fade" id="emailModal" tabindex="-1">
         <div class="modal-dialog">
             <form action="send_expiring_email.php" method="POST">
@@ -566,7 +484,6 @@ while ($row = $emailResult->fetch_assoc()) {
             </form>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -578,6 +495,10 @@ while ($row = $emailResult->fetch_assoc()) {
     console.log("Full Name:", <?php echo json_encode($_SESSION['fullname'] ?? 'ไม่พบ'); ?>);
     console.log("Email:", <?php echo json_encode($_SESSION['user_email'] ?? 'ไม่พบ'); ?>);
     console.log("Role:", <?php echo json_encode($_SESSION['user_role'] ?? 'ไม่พบ'); ?>);
+
+    $("#dropdown-request").on('change', function() {
+        $('#search-form').submit();
+    });
 
     $("#excel-file").on("change", function() {
         $("#loading-overlay").show(); // แสดง overlay
@@ -665,7 +586,6 @@ while ($row = $emailResult->fetch_assoc()) {
             }, doneTypingInterval);
         });
     })
-
 
     $(document).on("click", ".btn-edit", function() {
         const btn = $(this);

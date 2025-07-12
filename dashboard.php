@@ -116,7 +116,6 @@ while ($row = $result->fetch_assoc()) {
 </head>
 
 <body>
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #004085; padding-left: 2rem;">
         <div class="container-fluid">
             <a class="navbar-brand" href="dashboard.php">ระบบจัดการพัสดุในหน่วยงาน</a>
@@ -127,15 +126,23 @@ while ($row = $result->fetch_assoc()) {
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
                     <li class="nav-item">
                         <a class="nav-link active" href="dashboard.php">ระบบจัดการพัสดุในหน่วยงาน</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="parcel_management.php">จัดการพัสดุ</a>
                     </li>
-                    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'admin' || $_SESSION['user_role'] === 'superadmin')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="parcel_approve.php">ขออนุมัติ</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="user_management.php">จัดการผู้ใช้งาน</a>
+                    </li>
+                    <?php endif; ?>
+                    <?php if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'user')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="parcel_management_user.php">จัดการพัสดุ</a>
                     </li>
                     <?php endif; ?>
                     <li class="nav-item">
